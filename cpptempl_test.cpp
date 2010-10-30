@@ -708,5 +708,32 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 		wstring expected = L"aaabbb" ;
 		BOOST_CHECK_EQUAL( expected, actual ) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_usage_example)
+	{
+		wstring text = L"{% if item %}{$item}{% endif %}\n"
+			L"{% if thing %}{$thing}{% endif %}" ;
+		cpptempl::data_map data ;
+		data[L"item"] = cpptempl::make_data(L"aaa") ;
+		data[L"thing"] = cpptempl::make_data(L"bbb") ;
 
-BOOST_AUTO_TEST_SUITE_END()
+		wstring result = cpptempl::parse(text, data) ;
+
+		wstring expected = L"aaa\nbbb" ;
+		BOOST_CHECK_EQUAL( result, expected ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_syntax_if)
+	{
+		wstring text = L"{% if person.name == \"Bob\" %}Full name: Robert{% endif %}" ;
+		data_map person ;
+		person[L"name"] = make_data(L"Bob") ;
+		person[L"occupation"] = make_data(L"Plumber") ;
+		data_map data ;
+		data[L"person"] = make_data(person) ;
+
+		wstring result = cpptempl::parse(text, data) ;
+
+		wstring expected = L"Full name: Robert" ;
+		BOOST_CHECK_EQUAL( result, expected ) ;
+	}
+
+	BOOST_AUTO_TEST_SUITE_END()

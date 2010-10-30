@@ -25,25 +25,6 @@ BOOST_AUTO_TEST_SUITE( TestData )
 
 	using namespace cpptempl ;
 	
-	// Data
-	BOOST_AUTO_TEST_CASE(test_getvalue_throws)
-	{
-		Data data ;
-
-		BOOST_CHECK_THROW( data.getvalue(), TemplateException ) ;
-	}
-	BOOST_AUTO_TEST_CASE(test_getlist_throws)
-	{
-		Data data ;
-
-		BOOST_CHECK_THROW( data.getlist(), TemplateException ) ;
-	}
-	BOOST_AUTO_TEST_CASE(test_getitem_throws)
-	{
-		Data data ;
-
-		BOOST_CHECK_THROW( data.getmap(), TemplateException ) ;
-	}
 	// DataMap
 	BOOST_AUTO_TEST_CASE(test_DataMap_getvalue)
 	{
@@ -115,7 +96,14 @@ BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE( test_parse_val )
 
 	using namespace cpptempl ;
+	BOOST_AUTO_TEST_CASE(test_quoted)
+	{
+		data_map data ;
+		data[L"foo"] = data_ptr(new DataValue(L"bar")) ;
+		data_ptr value = parse_val(L"\"foo\"", data) ;
 
+		BOOST_CHECK_EQUAL( value->getvalue(), L"foo" ) ;
+	}
 	BOOST_AUTO_TEST_CASE(test_value)
 	{
 		data_map data ;
@@ -155,6 +143,168 @@ BOOST_AUTO_TEST_SUITE( test_parse_val )
 		data_ptr value = parse_val(L"a.b.c", data) ;
 
 		BOOST_CHECK_EQUAL( value->getvalue(), L"d" ) ;
+	}
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE( TestToken )
+
+	using namespace cpptempl ;
+
+	// TokenVar
+	BOOST_AUTO_TEST_CASE(TestTokenVarType)
+	{
+		TokenVar token(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettype(), L"var" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenVar)
+	{
+		TokenVar token(L"foo") ;
+		data_map data ;
+		data[L"foo"] = make_data(L"bar") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"bar" ) ;
+	}
+
+	// TokenText
+	BOOST_AUTO_TEST_CASE(TestTokenTextType)
+	{
+		TokenText token(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettype(), L"text" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenText)
+	{
+		TokenText token(L"foo") ;
+		data_map data ;
+		data[L"foo"] = make_data(L"bar") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"foo" ) ;
+	}
+
+	// TokenFor
+	BOOST_AUTO_TEST_CASE(TestTokenForBadSyntax)
+	{
+		token_vector children ;
+		BOOST_CHECK_THROW(TokenFor token(L"foo", children), TemplateException ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForType)
+	{
+		token_vector children ;
+		TokenFor token(L"for item in items", children) ;
+		BOOST_CHECK_EQUAL( token.gettype(), L"for" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForTextEmpty)
+	{
+		token_vector children ;
+		TokenFor token(L"for item in items", children) ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"first")); 
+		data[L"items"] = make_data(items) ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForTextOneVar)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenFor token(L"for item in items", children) ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"first ")); 
+		items.push_back(make_data(L"second ")); 
+		data[L"items"] = make_data(items) ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"first second " ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForTextOneVarLoop)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		TokenFor token(L"for item in items", children) ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"first ")); 
+		items.push_back(make_data(L"second ")); 
+		data[L"items"] = make_data(items) ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"12" ) ;
+	}	
+	BOOST_AUTO_TEST_CASE(TestTokenForLoopTextVar)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		children.push_back(token_ptr(new TokenText(L". "))) ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		children.push_back(token_ptr(new TokenText(L" "))) ;
+		TokenFor token(L"for item in items", children) ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"first")); 
+		items.push_back(make_data(L"second")); 
+		data[L"items"] = make_data(items) ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"1. first 2. second " ) ;
+	}	
+	BOOST_AUTO_TEST_CASE(TestTokenForTextOneText)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenText(L"{--}"))) ;
+		TokenFor token(L"for item in items", children) ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"first ")); 
+		items.push_back(make_data(L"second ")); 
+		data[L"items"] = make_data(items) ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"{--}{--}" ) ;
+	}
+
+	// TokenIf
+	BOOST_AUTO_TEST_CASE(TestTokenIfType)
+	{
+		token_vector children ;
+		TokenIf token(L"if items", children) ;
+		BOOST_CHECK_EQUAL( token.gettype(), L"if" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfTrueText)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenText(L"{--}"))) ;
+		TokenIf token(L"if item", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"{--}" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfTrueVar)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"foo" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfFalse)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenText(L"{--}"))) ;
+		TokenIf token(L"if item", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"") ;
+	}
+
+	BOOST_AUTO_TEST_CASE(TestTokenIfNotTrueText)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenText(L"{--}"))) ;
+		TokenIf token(L"if not item", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"") ;
+	}
+
+	BOOST_AUTO_TEST_CASE(TestTokenIfNotFalseText)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenText(L"{--}"))) ;
+		TokenIf token(L"if not item", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"{--}") ;
 	}
 BOOST_AUTO_TEST_SUITE_END()
 

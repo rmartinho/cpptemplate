@@ -148,21 +148,6 @@ namespace cpptempl
 		}
 		return boost::join(elements, L"") ;
 	}
-/*
-
-def eval_if(expr, data):
-    if expr[0] == u"not":
-        return not get_val(expr[1], data)
-    elif len(expr) == 1:
-        return get_val(expr[0], data)
-    elif expr[1] == u"==":
-        return get_val(expr[0], data) == get_val(expr[2], data)
-    elif expr[1] == u"!=":
-        return get_val(expr[0], data) != get_val(expr[2], data)
-    else:
-        raise TemplateError(u"Bad if statement syntax: " + u" ".join(expr))
-*/
-
 	bool TokenIf::is_true( std::wstring expr, data_map &data )
 	{
 		std::vector<std::wstring> elements ;
@@ -170,14 +155,14 @@ def eval_if(expr, data):
 
 		if (elements[1] == L"not")
 		{
-			return data[boost::trim_copy(elements[2])]->empty() ;
+			return parse_val(elements[2], data)->empty() ;
 		}
 		if (elements.size() == 2)
 		{
-			return ! data[boost::trim_copy(elements[1])]->empty() ;
+			return ! parse_val(elements[1], data)->empty() ;
 		}
-		data_ptr lhs = data[boost::trim_copy(elements[1])] ;
-		data_ptr rhs = data[boost::trim_copy(elements[3])] ;
+		data_ptr lhs = parse_val(elements[1], data) ;
+		data_ptr rhs = parse_val(elements[3], data) ;
 		if (elements[2] == L"==")
 		{
 			return lhs->getvalue() == rhs->getvalue() ;

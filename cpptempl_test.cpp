@@ -252,13 +252,17 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		BOOST_CHECK_EQUAL( token.gettext(data), L"{--}{--}" ) ;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
 	// TokenIf
+	//////////////////////////////////////////////////////////////////////////
+
 	BOOST_AUTO_TEST_CASE(TestTokenIfType)
 	{
 		token_vector children ;
 		TokenIf token(L"if items", children) ;
 		BOOST_CHECK_EQUAL( token.gettype(), L"if" ) ;
 	}
+	// if not empty
 	BOOST_AUTO_TEST_CASE(TestTokenIfTrueText)
 	{
 		token_vector children ;
@@ -287,6 +291,57 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		BOOST_CHECK_EQUAL( token.gettext(data), L"") ;
 	}
 
+	// ==
+	BOOST_AUTO_TEST_CASE(TestTokenIfEqualsTrue)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item == \"foo\"", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"foo" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfEqualsFalse)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item == \"bar\"", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfEqualsTwoVarsTrue)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item == foo", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"x") ;
+		data[L"foo"] = make_data(L"x") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"x" ) ;
+	}
+
+	// !=
+	BOOST_AUTO_TEST_CASE(TestTokenIfNotEqualsTrue)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item != \"foo\"", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenIfNotEqualsFalse)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"item"))) ;
+		TokenIf token(L"if item != \"bar\"", children) ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		BOOST_CHECK_EQUAL( token.gettext(data), L"foo" ) ;
+	}
+
+	// not
 	BOOST_AUTO_TEST_CASE(TestTokenIfNotTrueText)
 	{
 		token_vector children ;

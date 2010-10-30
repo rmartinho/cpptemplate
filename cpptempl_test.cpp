@@ -158,6 +158,35 @@ BOOST_AUTO_TEST_SUITE( test_parse_val )
 
 		BOOST_CHECK_EQUAL( value->getvalue(), L"d" ) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_dotted_to_list)
+	{
+		data_list friends ;
+		friends.push_back(make_data(L"Bob")) ;
+		data_map person ;
+		person[L"friends"] = make_data(friends) ;
+		data_map data ;
+		data[L"person"] = make_data(person) ;
+		data_ptr value = parse_val(L"person.friends", data) ;
+
+		BOOST_CHECK_EQUAL( value->getlist().size(), 1u ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_dotted_to_dict_list)
+	{
+		data_map bob ;
+		bob[L"name"] = make_data(L"Bob") ;
+		data_map betty ;
+		betty[L"name"] = make_data(L"Betty") ;
+		data_list friends ;
+		friends.push_back(make_data(bob)) ;
+		friends.push_back(make_data(betty)) ;
+		data_map person ;
+		person[L"friends"] = make_data(friends) ;
+		data_map data ;
+		data[L"person"] = make_data(person) ;
+		data_ptr value = parse_val(L"person.friends", data) ;
+
+		BOOST_CHECK_EQUAL( value->getlist()[0]->getmap()[L"name"]->getvalue(), L"Bob" ) ;
+	}
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( TestToken )
@@ -262,7 +291,37 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		items.push_back(make_data(L"second")); 
 		data[L"items"] = make_data(items) ;
 		BOOST_CHECK_EQUAL( token.gettext(data), L"1. first 2. second " ) ;
-	}	
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForLoopTextVarDottedKeyAndVal)
+	{
+		TokenFor token(L"for friend in person.friends") ;
+		BOOST_CHECK_EQUAL( token.m_key, L"person.friends" ) ;
+		BOOST_CHECK_EQUAL( token.m_val, L"friend" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenForLoopTextVarDotted)
+	{
+		token_vector children ;
+		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		children.push_back(token_ptr(new TokenText(L". "))) ;
+		children.push_back(token_ptr(new TokenVar(L"friend.name"))) ;
+		children.push_back(token_ptr(new TokenText(L" "))) ;
+		TokenFor token(L"for friend in person.friends") ;
+		token.set_children(children) ;
+
+		data_map bob ;
+		bob[L"name"] = make_data(L"Bob") ;
+		data_map betty ;
+		betty[L"name"] = make_data(L"Betty") ;
+		data_list friends ;
+		friends.push_back(make_data(bob)) ;
+		friends.push_back(make_data(betty)) ;
+		data_map person ;
+		person[L"friends"] = make_data(friends) ;
+		data_map data ;
+		data[L"person"] = make_data(person) ;
+
+		BOOST_CHECK_EQUAL( token.gettext(data), L"1. Bob 2. Betty " ) ;
+	}
 	BOOST_AUTO_TEST_CASE(TestTokenForTextOneText)
 	{
 		token_vector children ;
@@ -733,6 +792,27 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 		wstring result = cpptempl::parse(text, data) ;
 
 		wstring expected = L"Full name: Robert" ;
+		BOOST_CHECK_EQUAL( result, expected ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_syntax_dotted)
+	{
+		wstring text = L"{% for friend in person.friends %}{$loop}. {$friend.name} {% endfor %}" ;
+
+		data_map bob ;
+		bob[L"name"] = make_data(L"Bob") ;
+		data_map betty ;
+		betty[L"name"] = make_data(L"Betty") ;
+		data_list friends ;
+		friends.push_back(make_data(bob)) ;
+		friends.push_back(make_data(betty)) ;
+		data_map person ;
+		person[L"friends"] = make_data(friends) ;
+		data_map data ;
+		data[L"person"] = make_data(person) ;
+
+		wstring result = cpptempl::parse(text, data) ;
+
+		wstring expected = L"1. Bob 2. Betty " ;
 		BOOST_CHECK_EQUAL( result, expected ) ;
 	}
 

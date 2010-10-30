@@ -157,10 +157,10 @@ namespace cpptempl
 	};
 	class TokenFor : public Token
 	{
+	public:
 		wstring m_key ;
 		wstring m_val ;
 		token_vector m_children ;
-	public:
 		TokenFor(wstring expr);
 		TokenType gettype();
 		wstring gettext(data_map &data);
@@ -169,9 +169,9 @@ namespace cpptempl
 	};
 	class TokenIf : public Token
 	{
+	public:
 		wstring m_expr ;
 		token_vector m_children ;
-	public:
 		TokenIf(wstring expr) : m_expr(expr){}
 		TokenType gettype();
 		wstring gettext(data_map &data);

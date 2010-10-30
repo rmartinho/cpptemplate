@@ -69,6 +69,16 @@ namespace cpptempl
 	//////////////////////////////////////////////////////////////////////////
 	// Token classes
 	//////////////////////////////////////////////////////////////////////////
+
+	void Token::set_children( token_vector &children )
+	{
+		throw TemplateException("This token type cannot have children") ;
+	}
+
+	token_vector & Token::get_children()
+	{
+		throw TemplateException("This token type cannot have children") ;
+	}
 	TokenType TokenText::gettype()
 	{
 		return TOKEN_TYPE_TEXT ;
@@ -122,6 +132,16 @@ namespace cpptempl
 		return boost::join(elements, L"") ;
 	}
 
+	void TokenFor::set_children( token_vector &children )
+	{
+		m_children.clear() ;
+		std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+	}
+
+	token_vector & TokenFor::get_children()
+	{
+		return m_children;
+	}
 	TokenType TokenIf::gettype()
 	{
 		return TOKEN_TYPE_IF ;
@@ -161,6 +181,16 @@ namespace cpptempl
 		return lhs->getvalue() != rhs->getvalue() ;
 	}
 
+	void TokenIf::set_children( token_vector &children )
+	{
+		m_children.clear() ;
+		std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+	}
+
+	token_vector & TokenIf::get_children()
+	{
+		return m_children;
+	}
 	TokenType TokenEnd::gettype()
 	{
 		return m_type == L"endfor" ? TOKEN_TYPE_ENDFOR : TOKEN_TYPE_ENDIF ;
@@ -174,21 +204,31 @@ namespace cpptempl
 	//////////////////////////////////////////////////////////////////////////
 	// parse_tree
 	//////////////////////////////////////////////////////////////////////////
-/*
-def parse_tree(tokens, until=None):
-    tree = []
-    while tokens:
-        token = tokens.pop()
-        if token.ntype == "for":
-            token.children, tokens = parse_tree(tokens, "endfor")
-        elif token.ntype == "if":
-            token.children, tokens = parse_tree(tokens, "endif")
-        elif token.ntype == until:
-            return tree, tokens
-        tree.append(token)
-    return tree, tokens
-*/
-
+	void parse_tree(token_vector &tokens, token_vector &tree, TokenType until)
+	{
+		while(! tokens.empty())
+		{
+			token_ptr token = tokens[0] ;
+			tokens.erase(tokens.begin()) ;
+			if (token->gettype() == TOKEN_TYPE_FOR)
+			{
+				token_vector children ;
+				parse_tree(tokens, children, TOKEN_TYPE_ENDFOR) ;
+				token->set_children(children) ;
+			}
+			else if (token->gettype() == TOKEN_TYPE_IF)
+			{
+				token_vector children ;
+				parse_tree(tokens, children, TOKEN_TYPE_ENDIF) ;
+				token->set_children(children) ;
+			}
+			else if (token->gettype() == until)
+			{
+				return ;
+			}
+			tree.push_back(token) ;
+		}
+	}
 	//////////////////////////////////////////////////////////////////////////
 	// tokenize
 	//////////////////////////////////////////////////////////////////////////

@@ -549,3 +549,66 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 
 BOOST_AUTO_TEST_SUITE_END()
 
+
+BOOST_AUTO_TEST_SUITE( test_parse_tree )
+
+	using namespace cpptempl ;
+
+	token_ptr make_tt(wstring text)
+	{
+		return token_ptr(new TokenText(text)) ;
+	}
+	token_ptr make_for(wstring text)
+	{
+		return token_ptr(new TokenFor(text)) ;
+	}
+	token_ptr make_if(wstring text)
+	{
+		return token_ptr(new TokenIf(text)) ;
+	}
+	token_ptr make_endfor()
+	{
+		return token_ptr(new TokenEnd(L"endfor")) ;
+	}
+	token_ptr make_endif()
+	{
+		return token_ptr(new TokenEnd(L"endif")) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_empty)
+	{
+		token_vector tokens ;
+		token_vector tree ;
+		parse_tree(tokens, tree) ;
+		BOOST_CHECK_EQUAL( 0u, tree.size() ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_one)
+	{
+		token_vector tokens ;
+		tokens.push_back(make_tt(L"foo")) ;
+		token_vector tree ;
+		parse_tree(tokens, tree) ;
+		BOOST_CHECK_EQUAL( 1u, tree.size() ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_for)
+	{
+		token_vector tokens ;
+		tokens.push_back(make_for(L"for item in items")) ;
+		tokens.push_back(make_tt(L"foo")) ;
+		tokens.push_back(make_endfor()) ;
+		token_vector tree ;
+		parse_tree(tokens, tree) ;
+		BOOST_CHECK_EQUAL( 1u, tree.size() ) ;
+		BOOST_CHECK_EQUAL( 1u, tree[0]->get_children().size()) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_if)
+	{
+		token_vector tokens ;
+		tokens.push_back(make_if(L"if insane")) ;
+		tokens.push_back(make_tt(L"foo")) ;
+		tokens.push_back(make_endif()) ;
+		token_vector tree ;
+		parse_tree(tokens, tree) ;
+		BOOST_CHECK_EQUAL( 1u, tree.size() ) ;
+		BOOST_CHECK_EQUAL( 1u, tree[0]->get_children().size()) ;
+	}
+BOOST_AUTO_TEST_SUITE_END()

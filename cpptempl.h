@@ -83,6 +83,7 @@ namespace cpptempl
 
 	typedef enum 
 	{
+		TOKEN_TYPE_NONE,
 		TOKEN_TYPE_TEXT,
 		TOKEN_TYPE_VAR,
 		TOKEN_TYPE_IF,
@@ -90,16 +91,15 @@ namespace cpptempl
 		TOKEN_TYPE_ENDIF,
 		TOKEN_TYPE_ENDFOR,
 	} TokenType;
+
 	// Template tokens
 	class Token
 	{
 	public:
 		virtual TokenType gettype() = 0 ;
 		virtual wstring gettext(data_map &data) = 0 ;
-		virtual void set_children(token_vector &children)
-		{
-			throw TemplateException("This token type cannot have children") ;
-		}
+		virtual void set_children(token_vector &children);
+		virtual token_vector & get_children();
 	};
 	class TokenText : public Token
 	{
@@ -126,11 +126,8 @@ namespace cpptempl
 		TokenFor(wstring expr);
 		TokenType gettype();
 		wstring gettext(data_map &data);
-		void set_children(token_vector &children)
-		{
-			m_children.clear() ;
-			std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
-		}
+		void set_children(token_vector &children);
+		token_vector &get_children();
 	};
 	class TokenIf : public Token
 	{
@@ -141,11 +138,8 @@ namespace cpptempl
 		TokenType gettype();
 		wstring gettext(data_map &data);
 		bool is_true(wstring expr, data_map &data);
-		void set_children(token_vector &children)
-		{
-			m_children.clear() ;
-			std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
-		}
+		void set_children(token_vector &children);
+		token_vector &get_children();
 	};
 	class TokenEnd : public Token // end of control block
 	{
@@ -155,5 +149,7 @@ namespace cpptempl
 		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
+
+	void parse_tree(token_vector &tokens, token_vector &tree, TokenType until=TOKEN_TYPE_NONE) ;
 	token_vector & tokenize(wstring text, token_vector &tokens) ;
 }

@@ -9,11 +9,12 @@
 
 namespace cpptempl
 {
+	using std::wstring ;
 	// various typedefs
 	class Data ;
 	typedef boost::shared_ptr<Data> data_ptr ;
 	typedef std::vector<data_ptr> data_list ;
-	typedef std::map<std::wstring, data_ptr> data_map ;
+	typedef std::map<wstring, data_ptr> data_map ;
 
 	class Token ;
 	typedef boost::shared_ptr<Token> token_ptr ;
@@ -31,17 +32,17 @@ namespace cpptempl
 	{
 	public:
 		virtual bool empty() = 0 ;
-		virtual std::wstring getvalue();
+		virtual wstring getvalue();
 		virtual data_list& getlist();
 		virtual data_map& getmap() ;
 	};
 
 	class DataValue : public Data
 	{
-		std::wstring m_value ;
+		wstring m_value ;
 	public:
-		DataValue(std::wstring value) : m_value(value){}
-		std::wstring getvalue();
+		DataValue(wstring value) : m_value(value){}
+		wstring getvalue();
 		bool empty();
 	};
 
@@ -64,7 +65,7 @@ namespace cpptempl
 	};
 
 	// convenience functions for making data objects
-	inline data_ptr make_data(std::wstring val)
+	inline data_ptr make_data(wstring val)
 	{
 		return data_ptr(new DataValue(val)) ;
 	}
@@ -78,51 +79,72 @@ namespace cpptempl
 	}
 	// get a data value from a data map
 	// e.g. foo.bar => data["foo"]["bar"]
-	data_ptr parse_val(std::wstring key, data_map &data) ;
+	data_ptr parse_val(wstring key, data_map &data) ;
 
 	// Template tokens
 	class Token
 	{
 	public:
-		virtual std::wstring gettype() = 0 ;
-		virtual std::wstring gettext(data_map &data) = 0 ;
+		virtual wstring gettype() = 0 ;
+		virtual wstring gettext(data_map &data) = 0 ;
+		virtual void set_children(token_vector &children)
+		{
+			throw TemplateException("This token type cannot have children") ;
+		}
 	};
 	class TokenText : public Token
 	{
-		std::wstring m_text ;
+		wstring m_text ;
 	public:
-		TokenText(std::wstring text) : m_text(text){}
-		std::wstring gettype();
-		std::wstring gettext(data_map &data);
+		TokenText(wstring text) : m_text(text){}
+		wstring gettype();
+		wstring gettext(data_map &data);
 	};
 	class TokenVar : public Token
 	{
-		std::wstring m_key ;
+		wstring m_key ;
 	public:
-		TokenVar(std::wstring key) : m_key(key){}
-		std::wstring gettype();
-		std::wstring gettext(data_map &data);
+		TokenVar(wstring key) : m_key(key){}
+		wstring gettype();
+		wstring gettext(data_map &data);
 	};
 	class TokenFor : public Token
 	{
-		std::wstring m_key ;
-		std::wstring m_val ;
+		wstring m_key ;
+		wstring m_val ;
 		token_vector m_children ;
 	public:
-		TokenFor(std::wstring expr, token_vector &children);
-		std::wstring gettype();
-		std::wstring gettext(data_map &data);
+		TokenFor(wstring expr);
+		wstring gettype();
+		wstring gettext(data_map &data);
+		void set_children(token_vector &children)
+		{
+			m_children.clear() ;
+			std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+		}
 	};
 	class TokenIf : public Token
 	{
-		std::wstring m_expr ;
+		wstring m_expr ;
 		token_vector m_children ;
 	public:
-		TokenIf(std::wstring expr, token_vector &children) : m_expr(expr), m_children(children){}
-		std::wstring gettype();
-		std::wstring gettext(data_map &data);
-		bool is_true(std::wstring expr, data_map &data);
+		TokenIf(wstring expr) : m_expr(expr){}
+		wstring gettype();
+		wstring gettext(data_map &data);
+		bool is_true(wstring expr, data_map &data);
+		void set_children(token_vector &children)
+		{
+			m_children.clear() ;
+			std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+		}
 	};
-
-	token_vector & tokenize(std::wstring text, token_vector &tokens) ;
+	class TokenEnd : public Token // end of control block
+	{
+		wstring m_type ;
+	public:
+		TokenEnd(wstring text) : m_type(text){}
+		wstring gettype();
+		wstring gettext(data_map &data);
+	};
+	token_vector & tokenize(wstring text, token_vector &tokens) ;
 }

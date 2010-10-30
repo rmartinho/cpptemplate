@@ -796,7 +796,9 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 	}
 	BOOST_AUTO_TEST_CASE(test_syntax_dotted)
 	{
-		wstring text = L"{% for friend in person.friends %}{$loop}. {$friend.name} {% endfor %}" ;
+		wstring text = L"{% for friend in person.friends %}"
+			L"{$loop}. {$friend.name} "
+			L"{% endfor %}" ;
 
 		data_map bob ;
 		bob[L"name"] = make_data(L"Bob") ;
@@ -815,5 +817,41 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 		wstring expected = L"1. Bob 2. Betty " ;
 		BOOST_CHECK_EQUAL( result, expected ) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_example_okinawa)
+	{
+		// The text template
+		wstring text = L"I heart {$place}!" ;
+		// Data to feed the template engine
+		cpptempl::data_map data ;
+		// {$place} => Okinawa
+		data[L"place"] = cpptempl::make_data(L"Okinawa");
+		// parse the template with the supplied data dictionary
+		wstring result = cpptempl::parse(text, data) ;
 
-	BOOST_AUTO_TEST_SUITE_END()
+		wstring expected = L"I heart Okinawa!" ;
+		BOOST_CHECK_EQUAL( result, expected ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_example_ul)
+	{
+		wstring text = L"<h3>Locations</h3><ul>"
+			L"{% for place in places %}"
+			L"<li>{$place}</li>"
+			L"{% endfor %}"
+			L"</ul>" ;
+
+		// Create the list of items
+		cpptempl::data_list places;
+		places.push_back(cpptempl::make_data(L"Okinawa"));
+		places.push_back(cpptempl::make_data(L"San Francisco"));
+		// Now set this in the data map
+		cpptempl::data_map data ;
+		data[L"places"] = cpptempl::make_data(places);
+		// parse the template with the supplied data dictionary
+		wstring result = cpptempl::parse(text, data) ;
+		wstring expected = L"<h3>Locations</h3><ul>"
+			L"<li>Okinawa</li>"
+			L"<li>San Francisco</li>"
+			L"</ul>" ;
+		BOOST_CHECK_EQUAL(result, expected) ;
+	}
+BOOST_AUTO_TEST_SUITE_END()

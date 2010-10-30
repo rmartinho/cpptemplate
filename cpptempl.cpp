@@ -59,10 +59,19 @@ namespace cpptempl
 		size_t index = key.find(L".") ;
 		if (index == wstring::npos)
 		{
+			if (data.find(key) == data.end())
+			{
+				throw TemplateException("Variable name missing") ;
+			}
 			return data[key] ;
 		}
 
-		data_ptr item = data[key.substr(0, index)] ;
+		wstring sub_key = key.substr(0, index) ;
+		if (data.find(sub_key) == data.end())
+		{
+			throw TemplateException("Dotted variable name missing") ;
+		}
+		data_ptr item = data[sub_key] ;
 		return parse_val(key.substr(index+1), item->getmap()) ;
 	}
 
@@ -70,7 +79,7 @@ namespace cpptempl
 	// Token classes
 	//////////////////////////////////////////////////////////////////////////
 
-	void Token::set_children( token_vector &children )
+	void Token::set_children( token_vector & )
 	{
 		throw TemplateException("This token type cannot have children") ;
 	}
@@ -196,7 +205,7 @@ namespace cpptempl
 		return m_type == L"endfor" ? TOKEN_TYPE_ENDFOR : TOKEN_TYPE_ENDIF ;
 	}
 
-	wstring TokenEnd::gettext( data_map &data )
+	wstring TokenEnd::gettext( data_map & )
 	{
 		return L"" ;
 	}

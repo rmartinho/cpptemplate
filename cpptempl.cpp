@@ -69,18 +69,18 @@ namespace cpptempl
 	//////////////////////////////////////////////////////////////////////////
 	// Token classes
 	//////////////////////////////////////////////////////////////////////////
-	wstring TokenText::gettype()
+	TokenType TokenText::gettype()
 	{
-		return L"text" ;
+		return TOKEN_TYPE_TEXT ;
 	}
 	wstring TokenText::gettext( data_map & )
 	{
 		return m_text ;
 	}
 
-	wstring TokenVar::gettype()
+	TokenType TokenVar::gettype()
 	{
-		return L"var" ;
+		return TOKEN_TYPE_VAR ;
 	}
 	wstring TokenVar::gettext( data_map &data )
 	{
@@ -99,9 +99,9 @@ namespace cpptempl
 		m_key = elements[3] ;
 	}
 
-	wstring TokenFor::gettype()
+	TokenType TokenFor::gettype()
 	{
-		return L"for" ;
+		return TOKEN_TYPE_FOR ;
 	}
 
 	wstring TokenFor::gettext( data_map &data )
@@ -122,9 +122,9 @@ namespace cpptempl
 		return boost::join(elements, L"") ;
 	}
 
-	wstring TokenIf::gettype()
+	TokenType TokenIf::gettype()
 	{
-		return L"if" ;
+		return TOKEN_TYPE_IF ;
 	}
 
 	wstring TokenIf::gettext( data_map &data )
@@ -161,15 +161,33 @@ namespace cpptempl
 		return lhs->getvalue() != rhs->getvalue() ;
 	}
 
-	wstring TokenEnd::gettype()
+	TokenType TokenEnd::gettype()
 	{
-		return m_type ;
+		return m_type == L"endfor" ? TOKEN_TYPE_ENDFOR : TOKEN_TYPE_ENDIF ;
 	}
 
 	wstring TokenEnd::gettext( data_map &data )
 	{
 		return L"" ;
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// parse_tree
+	//////////////////////////////////////////////////////////////////////////
+/*
+def parse_tree(tokens, until=None):
+    tree = []
+    while tokens:
+        token = tokens.pop()
+        if token.ntype == "for":
+            token.children, tokens = parse_tree(tokens, "endfor")
+        elif token.ntype == "if":
+            token.children, tokens = parse_tree(tokens, "endif")
+        elif token.ntype == until:
+            return tree, tokens
+        tree.append(token)
+    return tree, tokens
+*/
 
 	//////////////////////////////////////////////////////////////////////////
 	// tokenize

@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenVarType)
 	{
 		TokenVar token(L"foo") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"var" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_VAR ) ;
 	}
 	BOOST_AUTO_TEST_CASE(TestTokenVar)
 	{
@@ -187,7 +187,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenTextType)
 	{
 		TokenText token(L"foo") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"text" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_TEXT ) ;
 	}
 	BOOST_AUTO_TEST_CASE(TestTokenText)
 	{
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenForType)
 	{
 		TokenFor token(L"for item in items") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"for" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_FOR ) ;
 	}
 	BOOST_AUTO_TEST_CASE(TestTokenForTextEmpty)
 	{
@@ -284,7 +284,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenIfType)
 	{
 		TokenIf token(L"if items") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"if" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_IF ) ;
 	}
 	// if not empty
 	BOOST_AUTO_TEST_CASE(TestTokenIfTrueText)
@@ -400,12 +400,12 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenEndFor)
 	{
 		TokenEnd token(L"endfor") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"endfor" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_ENDFOR ) ;
 	}
 	BOOST_AUTO_TEST_CASE(TestTokenEndIf)
 	{
 		TokenEnd token(L"endif") ;
-		BOOST_CHECK_EQUAL( token.gettype(), L"endif" ) ;
+		BOOST_CHECK_EQUAL( token.gettype(), TOKEN_TYPE_ENDIF ) ;
 	}
 	BOOST_AUTO_TEST_CASE(TestTokenEndIfCantHaveChildren)
 	{
@@ -480,7 +480,7 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		tokenize(text, tokens) ;
 
 		BOOST_CHECK_EQUAL( 1u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"for" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_FOR ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_for_full)
 	{
@@ -489,9 +489,9 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		tokenize(text, tokens) ;
 
 		BOOST_CHECK_EQUAL( 3u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"for" ) ;
-		BOOST_CHECK_EQUAL( tokens[1]->gettype(), L"var" ) ;
-		BOOST_CHECK_EQUAL( tokens[2]->gettype(), L"endfor" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_FOR ) ;
+		BOOST_CHECK_EQUAL( tokens[1]->gettype(), TOKEN_TYPE_VAR ) ;
+		BOOST_CHECK_EQUAL( tokens[2]->gettype(), TOKEN_TYPE_ENDFOR ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_for_full_with_text)
 	{
@@ -502,12 +502,12 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		data[L"item"] = make_data(L"my ax") ;
 
 		BOOST_CHECK_EQUAL( 5u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"for" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_FOR ) ;
 		BOOST_CHECK_EQUAL( tokens[1]->gettext(data), L"*" ) ;
-		BOOST_CHECK_EQUAL( tokens[2]->gettype(), L"var" ) ;
+		BOOST_CHECK_EQUAL( tokens[2]->gettype(), TOKEN_TYPE_VAR ) ;
 		BOOST_CHECK_EQUAL( tokens[2]->gettext(data), L"my ax" ) ;
 		BOOST_CHECK_EQUAL( tokens[3]->gettext(data), L"*" ) ;
-		BOOST_CHECK_EQUAL( tokens[4]->gettype(), L"endfor" ) ;
+		BOOST_CHECK_EQUAL( tokens[4]->gettype(), TOKEN_TYPE_ENDFOR ) ;
 	}
 	// if
 	BOOST_AUTO_TEST_CASE(test_if)
@@ -517,7 +517,7 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		tokenize(text, tokens) ;
 
 		BOOST_CHECK_EQUAL( 1u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"if" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_IF ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_if_full)
 	{
@@ -526,9 +526,9 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		tokenize(text, tokens) ;
 
 		BOOST_CHECK_EQUAL( 3u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"if" ) ;
-		BOOST_CHECK_EQUAL( tokens[1]->gettype(), L"var" ) ;
-		BOOST_CHECK_EQUAL( tokens[2]->gettype(), L"endif" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_IF ) ;
+		BOOST_CHECK_EQUAL( tokens[1]->gettype(), TOKEN_TYPE_VAR ) ;
+		BOOST_CHECK_EQUAL( tokens[2]->gettype(), TOKEN_TYPE_ENDIF ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_if_full_with_text)
 	{
@@ -539,12 +539,12 @@ BOOST_AUTO_TEST_SUITE( TestTokenize )
 		data[L"item"] = make_data(L"my ax") ;
 
 		BOOST_CHECK_EQUAL( 5u, tokens.size() ) ;
-		BOOST_CHECK_EQUAL( tokens[0]->gettype(), L"if" ) ;
+		BOOST_CHECK_EQUAL( tokens[0]->gettype(), TOKEN_TYPE_IF ) ;
 		BOOST_CHECK_EQUAL( tokens[1]->gettext(data), L"{" ) ;
-		BOOST_CHECK_EQUAL( tokens[2]->gettype(), L"var" ) ;
+		BOOST_CHECK_EQUAL( tokens[2]->gettype(), TOKEN_TYPE_VAR ) ;
 		BOOST_CHECK_EQUAL( tokens[2]->gettext(data), L"my ax" ) ;
 		BOOST_CHECK_EQUAL( tokens[3]->gettext(data), L"}" ) ;
-		BOOST_CHECK_EQUAL( tokens[4]->gettype(), L"endif" ) ;
+		BOOST_CHECK_EQUAL( tokens[4]->gettype(), TOKEN_TYPE_ENDIF ) ;
 	}
 
 BOOST_AUTO_TEST_SUITE_END()

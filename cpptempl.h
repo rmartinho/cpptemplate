@@ -81,11 +81,20 @@ namespace cpptempl
 	// e.g. foo.bar => data["foo"]["bar"]
 	data_ptr parse_val(wstring key, data_map &data) ;
 
+	typedef enum 
+	{
+		TOKEN_TYPE_TEXT,
+		TOKEN_TYPE_VAR,
+		TOKEN_TYPE_IF,
+		TOKEN_TYPE_FOR,
+		TOKEN_TYPE_ENDIF,
+		TOKEN_TYPE_ENDFOR,
+	} TokenType;
 	// Template tokens
 	class Token
 	{
 	public:
-		virtual wstring gettype() = 0 ;
+		virtual TokenType gettype() = 0 ;
 		virtual wstring gettext(data_map &data) = 0 ;
 		virtual void set_children(token_vector &children)
 		{
@@ -97,7 +106,7 @@ namespace cpptempl
 		wstring m_text ;
 	public:
 		TokenText(wstring text) : m_text(text){}
-		wstring gettype();
+		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
 	class TokenVar : public Token
@@ -105,7 +114,7 @@ namespace cpptempl
 		wstring m_key ;
 	public:
 		TokenVar(wstring key) : m_key(key){}
-		wstring gettype();
+		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
 	class TokenFor : public Token
@@ -115,7 +124,7 @@ namespace cpptempl
 		token_vector m_children ;
 	public:
 		TokenFor(wstring expr);
-		wstring gettype();
+		TokenType gettype();
 		wstring gettext(data_map &data);
 		void set_children(token_vector &children)
 		{
@@ -129,7 +138,7 @@ namespace cpptempl
 		token_vector m_children ;
 	public:
 		TokenIf(wstring expr) : m_expr(expr){}
-		wstring gettype();
+		TokenType gettype();
 		wstring gettext(data_map &data);
 		bool is_true(wstring expr, data_map &data);
 		void set_children(token_vector &children)
@@ -143,7 +152,7 @@ namespace cpptempl
 		wstring m_type ;
 	public:
 		TokenEnd(wstring text) : m_type(text){}
-		wstring gettype();
+		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
 	token_vector & tokenize(wstring text, token_vector &tokens) ;

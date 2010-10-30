@@ -612,3 +612,101 @@ BOOST_AUTO_TEST_SUITE( test_parse_tree )
 		BOOST_CHECK_EQUAL( 1u, tree[0]->get_children().size()) ;
 	}
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(test_parse)
+
+	using namespace cpptempl ;
+
+	BOOST_AUTO_TEST_CASE(test_empty)
+	{
+		wstring text = L"" ;
+		data_map data ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_no_vars)
+	{
+		wstring text = L"foo" ;
+		data_map data ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"foo" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_var)
+	{
+		wstring text = L"{$foo}" ;
+		data_map data ;
+		data[L"foo"] = make_data(L"bar") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"bar" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_for)
+	{
+		wstring text = L"{% for item in items %}{$item}{% endfor %}" ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"0")) ;
+		items.push_back(make_data(L"1")) ;
+		data[L"items"] = make_data(items) ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"01" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_if_false)
+	{
+		wstring text = L"{% if item %}{$item}{% endif %}" ;
+		data_map data ;
+		data[L"item"] = make_data(L"") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_if_true)
+	{
+		wstring text = L"{% if item %}{$item}{% endif %}" ;
+		data_map data ;
+		data[L"item"] = make_data(L"foo") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"foo" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_nested_for)
+	{
+		wstring text = L"{% for item in items %}{% for thing in things %}{$item}{$thing}{% endfor %}{% endfor %}" ;
+		data_map data ;
+		data_list items ;
+		items.push_back(make_data(L"0")) ;
+		items.push_back(make_data(L"1")) ;
+		data[L"items"] = make_data(items) ;
+		data_list things ;
+		things.push_back(make_data(L"a")) ;
+		things.push_back(make_data(L"b")) ;
+		data[L"things"] = make_data(things) ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"0a0b1a1b" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_nested_if_false)
+	{
+		wstring text = L"{% if item %}{% if thing %}{$item}{$thing}{% endif %}{% endif %}" ;
+		data_map data ;
+		data[L"item"] = make_data(L"aaa") ;
+		data[L"thing"] = make_data(L"") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_nested_if_true)
+	{
+		wstring text = L"{% if item %}{% if thing %}{$item}{$thing}{% endif %}{% endif %}" ;
+		data_map data ;
+		data[L"item"] = make_data(L"aaa") ;
+		data[L"thing"] = make_data(L"bbb") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"aaabbb" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
+
+BOOST_AUTO_TEST_SUITE_END()

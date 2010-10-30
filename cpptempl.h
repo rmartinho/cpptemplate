@@ -152,4 +152,8 @@ namespace cpptempl
 
 	void parse_tree(token_vector &tokens, token_vector &tree, TokenType until=TOKEN_TYPE_NONE) ;
 	token_vector & tokenize(wstring text, token_vector &tokens) ;
+
+	// The big daddy. Pass in the template and data, 
+	// and get out a completed doc.
+	wstring parse(wstring templ_text, data_map &data);
 }

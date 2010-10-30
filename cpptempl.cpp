@@ -3,7 +3,7 @@
 namespace cpptempl
 {
 	//////////////////////////////////////////////////////////////////////////
-	// Data class and subclasses
+	// Data classes
 	//////////////////////////////////////////////////////////////////////////
 	wstring Data::getvalue()
 	{
@@ -297,4 +297,21 @@ namespace cpptempl
 		return tokens ;
 	}
 
+	//////////////////////////////////////////////////////////////////////////
+	// parse
+	//////////////////////////////////////////////////////////////////////////
+	wstring parse(wstring templ_text, data_map &data)
+	{
+		token_vector tokens ;
+		tokenize(templ_text, tokens) ;
+		token_vector tree ;
+		parse_tree(tokens, tree) ;
+		std::vector<wstring> nodes ;
+		for (size_t i = 0 ; i < tree.size() ; ++i)
+		{
+			nodes.push_back(tree[i]->gettext(data)); 
+		}
+
+		return boost::join(nodes, L"") ;
+	}
 }

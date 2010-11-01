@@ -120,6 +120,22 @@ BOOST_AUTO_TEST_SUITE( test_parse_val )
 
 		BOOST_CHECK_EQUAL( value->getvalue(), L"bar" ) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_not_found)
+	{
+		data_map data ;
+		data[L"foo"] = make_data(L"bar") ;
+		data_ptr value = parse_val(L"kettle", data) ;
+
+		BOOST_CHECK_EQUAL( value->getvalue(), L"{$kettle}" ) ;
+	}
+	BOOST_AUTO_TEST_CASE(test_not_found_dotted)
+	{
+		data_map data ;
+		data[L"foo"] = make_data(L"bar") ;
+		data_ptr value = parse_val(L"kettle.black", data) ;
+
+		BOOST_CHECK_EQUAL( value->getvalue(), L"{$kettle.black}" ) ;
+	}
 	BOOST_AUTO_TEST_CASE(test_my_ax)
 	{
 		data_map data ;
@@ -225,11 +241,17 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		data[L"foo"] = make_data(L"bar") ;
 		BOOST_CHECK_EQUAL( token.gettext(data), L"foo" ) ;
 	}
-	BOOST_AUTO_TEST_CASE(TestTokenTextCantHaveChildren)
+	BOOST_AUTO_TEST_CASE(TestTokenTextCantHaveChildrenSet)
 	{
 		TokenText token(L"foo") ;
 		token_vector children ;
 		BOOST_CHECK_THROW(token.set_children(children), TemplateException) ;
+	}
+	BOOST_AUTO_TEST_CASE(TestTokenTextCantHaveChildrenGet)
+	{
+		TokenText token(L"foo") ;
+		token_vector children ;
+		BOOST_CHECK_THROW(token.get_children(), TemplateException) ;
 	}
 	// TokenFor
 	BOOST_AUTO_TEST_CASE(TestTokenForBadSyntax)
@@ -266,7 +288,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenForTextOneVarLoop)
 	{
 		token_vector children ;
-		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		children.push_back(token_ptr(new TokenVar(L"loop.index"))) ;
 		TokenFor token(L"for item in items") ;
 		token.set_children(children) ;
 		data_map data ;
@@ -279,7 +301,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenForLoopTextVar)
 	{
 		token_vector children ;
-		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		children.push_back(token_ptr(new TokenVar(L"loop.index"))) ;
 		children.push_back(token_ptr(new TokenText(L". "))) ;
 		children.push_back(token_ptr(new TokenVar(L"item"))) ;
 		children.push_back(token_ptr(new TokenText(L" "))) ;
@@ -301,7 +323,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	BOOST_AUTO_TEST_CASE(TestTokenForLoopTextVarDotted)
 	{
 		token_vector children ;
-		children.push_back(token_ptr(new TokenVar(L"loop"))) ;
+		children.push_back(token_ptr(new TokenVar(L"loop.index"))) ;
 		children.push_back(token_ptr(new TokenText(L". "))) ;
 		children.push_back(token_ptr(new TokenVar(L"friend.name"))) ;
 		children.push_back(token_ptr(new TokenText(L" "))) ;
@@ -376,6 +398,8 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		data[L"item"] = make_data(L"") ;
 		BOOST_CHECK_EQUAL( token.gettext(data), L"") ;
 	}
+
+	
 
 	// ==
 	BOOST_AUTO_TEST_CASE(TestTokenIfEqualsTrue)
@@ -472,7 +496,13 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 		token_vector children ;
 		BOOST_CHECK_THROW(token.set_children(children), TemplateException) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_throws_on_gettext)
+	{
+		data_map data ;
+		TokenEnd token(L"endif") ;
 
+		BOOST_CHECK_THROW(token.gettext(data), TemplateException) ;
+	}
 BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE( TestTokenize )
@@ -701,6 +731,15 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 		wstring expected = L"bar" ;
 		BOOST_CHECK_EQUAL( expected, actual ) ;
 	}
+	BOOST_AUTO_TEST_CASE(test_var_surrounded)
+	{
+		wstring text = L"aaa{$foo}bbb" ;
+		data_map data ;
+		data[L"foo"] = make_data(L"---") ;
+		wstring actual = parse(text, data) ;
+		wstring expected = L"aaa---bbb" ;
+		BOOST_CHECK_EQUAL( expected, actual ) ;
+	}
 	BOOST_AUTO_TEST_CASE(test_for)
 	{
 		wstring text = L"{% for item in items %}{$item}{% endfor %}" ;
@@ -797,7 +836,7 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 	BOOST_AUTO_TEST_CASE(test_syntax_dotted)
 	{
 		wstring text = L"{% for friend in person.friends %}"
-			L"{$loop}. {$friend.name} "
+			L"{$loop.index}. {$friend.name} "
 			L"{% endfor %}" ;
 
 		data_map bob ;

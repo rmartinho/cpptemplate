@@ -61,7 +61,7 @@ namespace cpptempl
 		{
 			if (data.find(key) == data.end())
 			{
-				throw TemplateException("Variable name missing") ;
+				return make_data(L"{$" + key + L"}") ;
 			}
 			return data[key] ;
 		}
@@ -69,7 +69,7 @@ namespace cpptempl
 		wstring sub_key = key.substr(0, index) ;
 		if (data.find(sub_key) == data.end())
 		{
-			throw TemplateException("Dotted variable name missing") ;
+			return make_data(L"{$" + key + L"}") ;
 		}
 		data_ptr item = data[sub_key] ;
 		return parse_val(key.substr(index+1), item->getmap()) ;
@@ -130,8 +130,10 @@ namespace cpptempl
 		data_list &items = value->getlist() ;
 		for (size_t i = 0 ; i < items.size() ; ++i)
 		{
-			data[L"loop"] = make_data(boost::lexical_cast<wstring>(i+1)) ;
-			data[L"loop0"] = make_data(boost::lexical_cast<wstring>(i)) ;
+			data_map loop ;
+			loop[L"index"] = make_data(boost::lexical_cast<wstring>(i+1)) ;
+			loop[L"index0"] = make_data(boost::lexical_cast<wstring>(i)) ;
+			data[L"loop"] = make_data(loop);
 			data[m_val] = items[i] ;
 			for(size_t j = 0 ; j < m_children.size() ; ++j)
 			{
@@ -207,7 +209,7 @@ namespace cpptempl
 
 	wstring TokenEnd::gettext( data_map & )
 	{
-		return L"" ;
+		throw TemplateException("End-of-control statements have no associated text") ;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -303,7 +305,6 @@ namespace cpptempl
 				tokens.push_back(token_ptr(new TokenText(L"{"))) ;
 			}
 		}
-		return tokens ;
 	}
 
 	//////////////////////////////////////////////////////////////////////////

@@ -145,8 +145,7 @@ namespace cpptempl
 
 	void TokenFor::set_children( token_vector &children )
 	{
-		m_children.clear() ;
-		std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+		m_children.assign(children.begin(), children.end()) ;
 	}
 
 	token_vector & TokenFor::get_children()
@@ -194,8 +193,7 @@ namespace cpptempl
 
 	void TokenIf::set_children( token_vector &children )
 	{
-		m_children.clear() ;
-		std::copy(children.begin(), children.end(), std::back_inserter(m_children)) ;
+		m_children.assign(children.begin(), children.end()) ;
 	}
 
 	token_vector & TokenIf::get_children()

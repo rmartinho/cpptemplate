@@ -1,10 +1,15 @@
+#include "stdafx.h"
 #include "cpptempl.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace cpptempl
 {
 	//////////////////////////////////////////////////////////////////////////
 	// Data classes
 	//////////////////////////////////////////////////////////////////////////
+
+	// base data
 	wstring Data::getvalue()
 	{
 		throw TemplateException("Data item is not a value") ;
@@ -18,15 +23,16 @@ namespace cpptempl
 	{
 		throw TemplateException("Data item is not a dictionary") ;
 	}
+	// data value
 	wstring DataValue::getvalue()
 	{
 		return m_value ;
 	}
-
 	bool DataValue::empty()
 	{
 		return m_value.empty();
 	}
+	// data list
 	data_list& DataList::getlist()
 	{
 		return m_items ;
@@ -36,11 +42,11 @@ namespace cpptempl
 	{
 		return m_items.empty();
 	}
+	// data map
 	data_map& DataMap:: getmap()
 	{
 		return m_items ;
 	}
-
 	bool DataMap::empty()
 	{
 		return m_items.empty();
@@ -79,6 +85,7 @@ namespace cpptempl
 	// Token classes
 	//////////////////////////////////////////////////////////////////////////
 
+	// defaults, overridden by subclasses with children
 	void Token::set_children( token_vector & )
 	{
 		throw TemplateException("This token type cannot have children") ;
@@ -88,6 +95,8 @@ namespace cpptempl
 	{
 		throw TemplateException("This token type cannot have children") ;
 	}
+
+	// TokenText
 	TokenType TokenText::gettype()
 	{
 		return TOKEN_TYPE_TEXT ;
@@ -97,6 +106,7 @@ namespace cpptempl
 		return m_text ;
 	}
 
+	// TokenVar
 	TokenType TokenVar::gettype()
 	{
 		return TOKEN_TYPE_VAR ;
@@ -106,6 +116,7 @@ namespace cpptempl
 		return parse_val(m_key, data)->getvalue() ;
 	}
 
+	// TokenFor
 	TokenFor::TokenFor(wstring expr)
 	{
 		std::vector<wstring> elements ;
@@ -152,6 +163,8 @@ namespace cpptempl
 	{
 		return m_children;
 	}
+
+	// TokenIf
 	TokenType TokenIf::gettype()
 	{
 		return TOKEN_TYPE_IF ;
@@ -212,13 +225,16 @@ namespace cpptempl
 
 	//////////////////////////////////////////////////////////////////////////
 	// parse_tree
+	// recursively parses list of tokens into a tree
 	//////////////////////////////////////////////////////////////////////////
 	void parse_tree(token_vector &tokens, token_vector &tree, TokenType until)
 	{
 		while(! tokens.empty())
 		{
+			// 'pops' first item off list
 			token_ptr token = tokens[0] ;
 			tokens.erase(tokens.begin()) ;
+
 			if (token->gettype() == TOKEN_TYPE_FOR)
 			{
 				token_vector children ;
@@ -240,10 +256,11 @@ namespace cpptempl
 	}
 	//////////////////////////////////////////////////////////////////////////
 	// tokenize
+	// parses a template into tokens (text, for, if, variable)
 	//////////////////////////////////////////////////////////////////////////
 	token_vector & tokenize(wstring text, token_vector &tokens)
 	{
-		while(true)
+		while(! text.empty())
 		{
 			size_t pos = text.find(L"{") ;
 			if (pos == wstring::npos)
@@ -303,11 +320,17 @@ namespace cpptempl
 				tokens.push_back(token_ptr(new TokenText(L"{"))) ;
 			}
 		}
+		return tokens ;
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// parse
-	//////////////////////////////////////////////////////////////////////////
+	/************************************************************************
+	* parse
+	*
+	*  1. tokenizes template
+	*  2. parses tokens into tree
+	*  3. resolves template
+	*  4. returns converted text
+	************************************************************************/
 	wstring parse(wstring templ_text, data_map &data)
 	{
 		token_vector tokens ;
@@ -317,6 +340,10 @@ namespace cpptempl
 		std::vector<wstring> nodes ;
 		for (size_t i = 0 ; i < tree.size() ; ++i)
 		{
+			// gettext returns the appropriate text for that node.
+			// for text, itself; 
+			// for variable, substitution; 
+			// for control statement, recursively gets kids
 			nodes.push_back(tree[i]->gettext(data)); 
 		}
 

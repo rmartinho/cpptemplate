@@ -45,20 +45,21 @@ Example:
 
 #include <string>
 #include <vector>
-#include <map>
+#include <map>							
 #include <boost/shared_ptr.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 
 namespace cpptempl
 {
 	using std::wstring ;
 	// various typedefs
+
+	// data classes
 	class Data ;
 	typedef boost::shared_ptr<Data> data_ptr ;
 	typedef std::vector<data_ptr> data_list ;
 	typedef std::map<wstring, data_ptr> data_map ;
 
+	// token classes
 	class Token ;
 	typedef boost::shared_ptr<Token> token_ptr ;
 	typedef std::vector<token_ptr> token_vector ;
@@ -136,6 +137,7 @@ namespace cpptempl
 	} TokenType;
 
 	// Template tokens
+	// base class for all token types
 	class Token
 	{
 	public:
@@ -144,6 +146,7 @@ namespace cpptempl
 		virtual void set_children(token_vector &children);
 		virtual token_vector & get_children();
 	};
+	// normal text
 	class TokenText : public Token
 	{
 		wstring m_text ;
@@ -152,6 +155,7 @@ namespace cpptempl
 		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
+	// variable
 	class TokenVar : public Token
 	{
 		wstring m_key ;
@@ -160,7 +164,8 @@ namespace cpptempl
 		TokenType gettype();
 		wstring gettext(data_map &data);
 	};
-	class TokenFor : public Token
+	// for block
+	class TokenFor : public Token 
 	{
 	public:
 		wstring m_key ;
@@ -172,6 +177,7 @@ namespace cpptempl
 		void set_children(token_vector &children);
 		token_vector &get_children();
 	};
+	// if block
 	class TokenIf : public Token
 	{
 	public:

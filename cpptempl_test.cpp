@@ -1,31 +1,23 @@
+#include "stdafx.h"
 #include "cpptempl.h"
+
+#ifdef UNIT_TEST
 
 #include <boost/test/unit_test.hpp>
 
-#ifdef _WIN32
 #pragma warning( disable : 4996 ) // doesn't like wcstombs
-#endif
+
 // Allow streaming of wstring to ostream
 namespace std {
-	inline ostream& operator<<(ostream& out, const wstring& value)
-	{
-		size_t num_chars = wcstombs( NULL, value.c_str(), 0 );
-		char *buf = new char[ num_chars+1 ];
-		wcstombs( buf, value.c_str(), num_chars );
-		buf[num_chars] = 0 ;
-		out << buf ;
-		delete[] buf;
-		return out;
-	}
+
 	inline ostream& operator<<(ostream& out, const wchar_t* value)
 	{
 		out << wstring(value) ;
 		return out;
 	}
 }
-#ifdef _WIN32
+
 #pragma warning( default : 4996 )
-#endif
 
 using namespace std ;
 
@@ -894,3 +886,5 @@ BOOST_AUTO_TEST_SUITE(test_parse)
 		BOOST_CHECK_EQUAL(result, expected) ;
 	}
 BOOST_AUTO_TEST_SUITE_END()
+
+#endif

@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "cpptempl.h"
 
+#include <sstream>
+#include <iostream>
+
 namespace cpptempl
 {
-
-
 	//////////////////////////////////////////////////////////////////////////
 	// Data classes
 	//////////////////////////////////////////////////////////////////////////
@@ -136,7 +137,8 @@ namespace cpptempl
 
 	wstring TokenFor::gettext( data_map &data )
 	{
-		std::vector<wstring> elements ;
+		std::wstringstream stream ;
+
 		data_ptr value = parse_val(m_key, data) ;
 		data_list &items = value->getlist() ;
 		for (size_t i = 0 ; i < items.size() ; ++i)
@@ -148,10 +150,10 @@ namespace cpptempl
 			data[m_val] = items[i] ;
 			for(size_t j = 0 ; j < m_children.size() ; ++j)
 			{
-				elements.push_back(m_children[j]->gettext(data)) ;
+				stream << m_children[j]->gettext(data) ;
 			}
 		}
-		return boost::join(elements, L"") ;
+		return stream.str() ;
 	}
 
 	void TokenFor::set_children( token_vector &children )
@@ -172,15 +174,15 @@ namespace cpptempl
 
 	wstring TokenIf::gettext( data_map &data )
 	{
-		std::vector<wstring> elements ;
+		std::wstringstream stream ;
 		if (is_true(m_expr, data))
 		{
 			for(size_t j = 0 ; j < m_children.size() ; ++j)
 			{
-				elements.push_back(m_children[j]->gettext(data)) ;
+				stream << m_children[j]->gettext(data) ;
 			}
 		}
-		return boost::join(elements, L"") ;
+		return stream.str() ;
 	}
 	bool TokenIf::is_true( wstring expr, data_map &data )
 	{
@@ -337,16 +339,18 @@ namespace cpptempl
 		tokenize(templ_text, tokens) ;
 		token_vector tree ;
 		parse_tree(tokens, tree) ;
-		std::vector<wstring> nodes ;
+
+		std::wstringstream stream ;
 		for (size_t i = 0 ; i < tree.size() ; ++i)
 		{
+			// Recursively calls gettext on each node in the tree.
 			// gettext returns the appropriate text for that node.
 			// for text, itself; 
 			// for variable, substitution; 
 			// for control statement, recursively gets kids
-			nodes.push_back(tree[i]->gettext(data)); 
+			stream << tree[i]->gettext(data) ; 
 		}
 
-		return boost::join(nodes, L"") ;
+		return stream.str() ;
 	}
 }

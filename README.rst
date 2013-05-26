@@ -11,7 +11,7 @@ Syntax
 =================
 Variables: {$variable_name}
 Loops: {% for person in people %}Name: {$person.name}{% endfor %}
-If: {% for person.name == "Bob" %}Full name: Robert{% endif %}
+If: {% if person.name == "Bob" %}Full name: Robert{% endif %}
 
 
 Usage

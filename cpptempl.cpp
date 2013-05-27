@@ -2,7 +2,6 @@
 #include "cpptempl.h"
 
 #include <sstream>
-#include <iostream>
 
 namespace cpptempl
 {
@@ -102,9 +101,10 @@ namespace cpptempl
 	{
 		return TOKEN_TYPE_TEXT ;
 	}
-	wstring TokenText::gettext( data_map & )
+
+	void TokenText::gettext( std::wostream &stream, data_map & )
 	{
-		return m_text ;
+		stream << m_text ;
 	}
 
 	// TokenVar
@@ -112,9 +112,10 @@ namespace cpptempl
 	{
 		return TOKEN_TYPE_VAR ;
 	}
-	wstring TokenVar::gettext( data_map &data )
+
+	void TokenVar::gettext( std::wostream &stream, data_map &data )
 	{
-		return parse_val(m_key, data)->getvalue() ;
+		stream << parse_val(m_key, data)->getvalue() ;
 	}
 
 	// TokenFor
@@ -135,10 +136,8 @@ namespace cpptempl
 		return TOKEN_TYPE_FOR ;
 	}
 
-	wstring TokenFor::gettext( data_map &data )
+	void TokenFor::gettext( std::wostream &stream, data_map &data )
 	{
-		std::wstringstream stream ;
-
 		data_ptr value = parse_val(m_key, data) ;
 		data_list &items = value->getlist() ;
 		for (size_t i = 0 ; i < items.size() ; ++i)
@@ -150,10 +149,9 @@ namespace cpptempl
 			data[m_val] = items[i] ;
 			for(size_t j = 0 ; j < m_children.size() ; ++j)
 			{
-				stream << m_children[j]->gettext(data) ;
+				m_children[j]->gettext(stream, data) ;
 			}
 		}
-		return stream.str() ;
 	}
 
 	void TokenFor::set_children( token_vector &children )
@@ -172,18 +170,17 @@ namespace cpptempl
 		return TOKEN_TYPE_IF ;
 	}
 
-	wstring TokenIf::gettext( data_map &data )
+	void TokenIf::gettext( std::wostream &stream, data_map &data )
 	{
-		std::wstringstream stream ;
 		if (is_true(m_expr, data))
 		{
 			for(size_t j = 0 ; j < m_children.size() ; ++j)
 			{
-				stream << m_children[j]->gettext(data) ;
+				m_children[j]->gettext(stream, data) ;
 			}
 		}
-		return stream.str() ;
 	}
+
 	bool TokenIf::is_true( wstring expr, data_map &data )
 	{
 		std::vector<wstring> elements ;
@@ -215,16 +212,27 @@ namespace cpptempl
 	{
 		return m_children;
 	}
+
+	// TokenEnd
 	TokenType TokenEnd::gettype()
 	{
 		return m_type == L"endfor" ? TOKEN_TYPE_ENDFOR : TOKEN_TYPE_ENDIF ;
 	}
 
-	wstring TokenEnd::gettext( data_map & )
+	void TokenEnd::gettext( std::wostream &, data_map &)
 	{
 		throw TemplateException("End-of-control statements have no associated text") ;
 	}
 
+	// gettext
+	// generic helper for getting text from tokens.
+
+	wstring gettext(token_ptr token, data_map &data)
+	{
+		std::wostringstream stream ;
+		token->gettext(stream, data) ;
+		return stream.str() ;
+	}
 	//////////////////////////////////////////////////////////////////////////
 	// parse_tree
 	// recursively parses list of tokens into a tree
@@ -335,12 +343,17 @@ namespace cpptempl
 	************************************************************************/
 	wstring parse(wstring templ_text, data_map &data)
 	{
+		std::wostringstream stream ;
+		parse(stream, templ_text, data) ;
+		return stream.str() ;
+	}
+	void parse(std::wostream &stream, wstring templ_text, data_map &data)
+	{
 		token_vector tokens ;
 		tokenize(templ_text, tokens) ;
 		token_vector tree ;
 		parse_tree(tokens, tree) ;
 
-		std::wstringstream stream ;
 		for (size_t i = 0 ; i < tree.size() ; ++i)
 		{
 			// Recursively calls gettext on each node in the tree.
@@ -348,9 +361,7 @@ namespace cpptempl
 			// for text, itself; 
 			// for variable, substitution; 
 			// for control statement, recursively gets kids
-			stream << tree[i]->gettext(data) ; 
+			tree[i]->gettext(stream, data) ; 
 		}
-
-		return stream.str() ;
 	}
 }

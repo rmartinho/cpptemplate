@@ -48,6 +48,8 @@ Example:
 #include <map>							
 #include <boost/shared_ptr.hpp>
 
+#include <iostream>
+
 namespace cpptempl
 {
 	using std::wstring ;
@@ -142,10 +144,11 @@ namespace cpptempl
 	{
 	public:
 		virtual TokenType gettype() = 0 ;
-		virtual wstring gettext(data_map &data) = 0 ;
+		virtual void gettext(std::wostream &stream, data_map &data) = 0 ;
 		virtual void set_children(token_vector &children);
 		virtual token_vector & get_children();
 	};
+
 	// normal text
 	class TokenText : public Token
 	{
@@ -153,8 +156,9 @@ namespace cpptempl
 	public:
 		TokenText(wstring text) : m_text(text){}
 		TokenType gettype();
-		wstring gettext(data_map &data);
+		void gettext(std::wostream &stream, data_map &data);
 	};
+
 	// variable
 	class TokenVar : public Token
 	{
@@ -162,8 +166,9 @@ namespace cpptempl
 	public:
 		TokenVar(wstring key) : m_key(key){}
 		TokenType gettype();
-		wstring gettext(data_map &data);
+		void gettext(std::wostream &stream, data_map &data);
 	};
+
 	// for block
 	class TokenFor : public Token 
 	{
@@ -173,10 +178,11 @@ namespace cpptempl
 		token_vector m_children ;
 		TokenFor(wstring expr);
 		TokenType gettype();
-		wstring gettext(data_map &data);
+		void gettext(std::wostream &stream, data_map &data);
 		void set_children(token_vector &children);
 		token_vector &get_children();
 	};
+
 	// if block
 	class TokenIf : public Token
 	{
@@ -185,24 +191,29 @@ namespace cpptempl
 		token_vector m_children ;
 		TokenIf(wstring expr) : m_expr(expr){}
 		TokenType gettype();
-		wstring gettext(data_map &data);
+		void gettext(std::wostream &stream, data_map &data);
 		bool is_true(wstring expr, data_map &data);
 		void set_children(token_vector &children);
 		token_vector &get_children();
 	};
+
+	// end of block
 	class TokenEnd : public Token // end of control block
 	{
 		wstring m_type ;
 	public:
 		TokenEnd(wstring text) : m_type(text){}
 		TokenType gettype();
-		wstring gettext(data_map &data);
+		void gettext(std::wostream &stream, data_map &data);
 	};
+
+	wstring gettext(token_ptr token, data_map &data) ;
 
 	void parse_tree(token_vector &tokens, token_vector &tree, TokenType until=TOKEN_TYPE_NONE) ;
 	token_vector & tokenize(wstring text, token_vector &tokens) ;
 
 	// The big daddy. Pass in the template and data, 
 	// and get out a completed doc.
+	void parse(std::wostream &stream, wstring templ_text, data_map &data) ;
 	wstring parse(wstring templ_text, data_map &data);
 }

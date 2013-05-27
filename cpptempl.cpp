@@ -1,7 +1,7 @@
-#include "stdafx.h"
 #include "cpptempl.h"
-
 #include <sstream>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace cpptempl
 {
@@ -358,10 +358,10 @@ namespace cpptempl
 		{
 			// Recursively calls gettext on each node in the tree.
 			// gettext returns the appropriate text for that node.
-			// for text, itself; 
-			// for variable, substitution; 
+			// for text, itself;
+			// for variable, substitution;
 			// for control statement, recursively gets kids
-			tree[i]->gettext(stream, data) ; 
+			tree[i]->gettext(stream, data) ;
 		}
 	}
 }

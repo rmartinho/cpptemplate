@@ -1,6 +1,10 @@
+#ifdef _MSC_VER
 #include "stdafx.h"
+#endif
 #include "cpptempl.h"
 
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <sstream>
 
 namespace cpptempl

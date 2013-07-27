@@ -1,18 +1,45 @@
+#ifdef _MSC_VER
 #include "stdafx.h"
+#endif
 #include "cpptempl.h"
 
 #ifdef UNIT_TEST
 
+#define BOOST_TEST_MODULE cpptemplTests
+
 #include <boost/test/unit_test.hpp>
+#ifndef _MSC_VER
+#include <boost/locale.hpp>
+#endif
 
 #pragma warning( disable : 4996 ) // doesn't like wcstombs
+
+#ifndef _MSC_VER
+inline std::string WideToUTF8(const std::wstring& text) {
+    return boost::locale::conv::from_utf<>(text, "UTF-8");
+}
+#endif
 
 // Allow streaming of wstring to ostream
 namespace std {
 
 	inline ostream& operator<<(ostream& out, const wchar_t* value)
 	{
+		#ifdef _MSC_VER
 		out << wstring(value) ;
+		#else
+		out << WideToUTF8(value);
+		#endif
+		return out;
+	}
+
+	inline ostream& operator<<(ostream& out, const wstring& value)
+	{
+		#ifdef _MSC_VER
+		out << wstring(value) ;
+		#else
+		out << WideToUTF8(value);
+		#endif
 		return out;
 	}
 }

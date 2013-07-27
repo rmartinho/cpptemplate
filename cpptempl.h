@@ -70,7 +70,13 @@ namespace cpptempl
 	class TemplateException : public std::exception
 	{
 	public:
-		TemplateException(std::string reason) : std::exception(reason.c_str()){}
+		TemplateException(std::string reason) : m_reason(reason){}
+		~TemplateException() throw() {}
+		const char* what() throw() {
+			return m_reason.c_str();
+		}
+	private:
+		std::string m_reason;
 	};
 
 	// Data types used in templates

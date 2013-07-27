@@ -26,12 +26,18 @@ If:
 Usage
 =======================
 
+Define a template::
+
 	wstring text = L"{% if item %}{$item}{% endif %}\n"
 		L"{% if thing %}{$thing}{% endif %}" ;
-		
+
+Set up data::
+
 	cpptempl::data_map data ;
 	data[L"item"] = cpptempl::make_data(L"aaa") ;
 	data[L"thing"] = cpptempl::make_data(L"bbb") ;
+
+Parse the template and data::
 
 	wstring result = cpptempl::parse(text, data) ;
 
@@ -40,7 +46,7 @@ Handy Functions
 
 make_data() : Feed it a string, data_map, or data_list to create a data entry.
 
-Example:
+Example::
 
 	data_map person ;
 	person[L"name"] = make_data(L"Bob") ;

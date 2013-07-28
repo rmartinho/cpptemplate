@@ -9,28 +9,48 @@ MIT License
 
 Syntax
 =================
-Variables: {$variable_name}
-Loops: {% for person in people %}Name: {$person.name}{% endfor %}
-If: {% if person.name == "Bob" %}Full name: Robert{% endif %}
+
+Variables:
+
+	{$variable_name}
+
+Loops:
+
+	{% for person in people %}Name: {$person.name}{% endfor %}
+
+If:
+
+	{% if person.name == "Bob" %}Full name: Robert{% endif %}
 
 
 Usage
 =======================
-	wstring text = L"{% if item %}{$item}{% endif %}\n"
-		L"{% if thing %}{$thing}{% endif %}" ;
+
+Define a template::
+
+	string text = "{% if item %}{$item}{% endif %}\n"
+		"{% if thing %}{$thing}{% endif %}" ;
+
+Set up data::
+
 	cpptempl::data_map data ;
-	data[L"item"] = cpptempl::make_data(L"aaa") ;
-	data[L"thing"] = cpptempl::make_data(L"bbb") ;
+	data["item"] = "aaa" ;
+	data["thing"] = "bbb" ;
 
-	wstring result = cpptempl::parse(text, data) ;
+Parse the template and data::
 
-Handy Functions
+	string result = cpptempl::parse(text, data) ;
+
+Lists, nested maps
 ========================
-make_data() : Feed it a string, data_map, or data_list to create a data entry.
-Example:
-	data_map person ;
-	person[L"name"] = make_data(L"Bob") ;
-	person[L"occupation"] = make_data(L"Plumber") ;
-	data_map data ;
-	data[L"person"] = make_data(person) ;
-	wstring result = parse(templ_text, data) ;
+
+Example::
+
+	cpptempl::data_map person_data ;
+	person_data["name"] = "Bob" ;
+	person_data["occupation"] = "Plumber" ;
+
+	cpptempl::data_map content ;
+	content["person"] = person_data ;
+	content["friends"].push_back("Alice") ;
+	content["friends"].push_back("Bob") ;

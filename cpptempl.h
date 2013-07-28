@@ -47,6 +47,9 @@ Example:
 #include <vector>
 #include <map>							
 #include <boost/shared_ptr.hpp>
+#include <boost/locale.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <iostream>
 
@@ -55,11 +58,65 @@ namespace cpptempl
 	using std::wstring ;
 	// various typedefs
 
+	class data_ptr;
+	typedef std::vector<data_ptr> data_list ;
+
+	class data_map {
+	public:
+		data_ptr& operator [](const std::wstring& key);
+		data_ptr& operator [](const std::string& key);
+		bool empty();
+		bool has(const wstring& key);
+	private:
+		boost::unordered_map<wstring, data_ptr> data;
+	};
+
 	// data classes
 	class Data ;
-	typedef boost::shared_ptr<Data> data_ptr ;
-	typedef std::vector<data_ptr> data_list ;
-	typedef std::map<wstring, data_ptr> data_map ;
+	class DataValue ;
+	class DataList ;
+	class DataMap ;
+
+	class data_ptr {
+	public:
+		data_ptr() {}
+		template<typename T> data_ptr(const T& data) {
+			this->operator =(data);
+		}
+		data_ptr(DataValue* data) : ptr(data) {}
+		data_ptr(DataList* data) : ptr(data) {}
+		data_ptr(DataMap* data) : ptr(data) {}
+		data_ptr(const data_ptr& data) {
+			ptr = data.ptr;
+		}
+		template<typename T> void operator = (const T& data);
+		void push_back(const data_ptr& data);
+		~data_ptr() {}
+		Data* operator ->() {
+			return ptr.get();
+		}
+	private:
+		boost::shared_ptr<Data> ptr;
+	};
+
+	template<> inline void data_ptr::operator = (const data_ptr& data);
+	template<> void data_ptr::operator = (const std::string& data);
+	template<> void data_ptr::operator = (const std::wstring& data);
+	template<> void data_ptr::operator = (const data_map& data);
+	template<typename T>
+	void data_ptr::operator = (const T& data) {
+		std::wstring data_str = boost::lexical_cast<std::wstring>(data);
+		this->operator =(data_str);
+	}
+
+	// convenience functions for recoding utf8 string to wstring and back
+	inline std::wstring utf8_to_wide(const std::string& text) {
+		return boost::locale::conv::to_utf<wchar_t>(text, "UTF-8");
+	}
+
+	inline std::string wide_to_utf8(const std::wstring& text) {
+		return boost::locale::conv::from_utf<>(text, "UTF-8");
+	}
 
 	// token classes
 	class Token ;
@@ -70,7 +127,13 @@ namespace cpptempl
 	class TemplateException : public std::exception
 	{
 	public:
-		TemplateException(std::string reason) : std::exception(reason.c_str()){}
+		TemplateException(std::string reason) : m_reason(reason){}
+		~TemplateException() throw() {}
+		const char* what() throw() {
+			return m_reason.c_str();
+		}
+	private:
+		std::string m_reason;
 	};
 
 	// Data types used in templates
@@ -96,7 +159,7 @@ namespace cpptempl
 	{
 		data_list m_items ;
 	public:
-		DataList(data_list &items) : m_items(items){}
+		DataList(const data_list &items) : m_items(items){}
 		data_list& getlist() ;
 		bool empty();
 	};
@@ -105,7 +168,7 @@ namespace cpptempl
 	{
 		data_map m_items ;
 	public:
-		DataMap(data_map &items) : m_items(items){}
+		DataMap(const data_map &items) : m_items(items){}
 		data_map& getmap();
 		bool empty();
 	};
@@ -216,4 +279,5 @@ namespace cpptempl
 	// and get out a completed doc.
 	void parse(std::wostream &stream, wstring templ_text, data_map &data) ;
 	wstring parse(wstring templ_text, data_map &data);
+	std::string parse(std::string templ_text, data_map &data);
 }

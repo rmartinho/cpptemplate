@@ -1,4 +1,8 @@
+#ifdef _MSC_VER
+#endif
 #include "cpptempl.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -8,6 +12,49 @@ namespace cpptempl
 	//////////////////////////////////////////////////////////////////////////
 	// Data classes
 	//////////////////////////////////////////////////////////////////////////
+
+	// data_map
+	data_ptr& data_map::operator [](const std::wstring& key) {
+		return data[key];
+	}
+	data_ptr& data_map::operator [](const std::string& key) {
+		return data[utf8_to_wide(key)];
+	}
+	bool data_map::empty() {
+		return data.empty();
+	}
+	bool data_map::has(const wstring& key) {
+		return data.find(key) != data.end();
+	}
+
+	// data_ptr
+	template<>
+	inline void data_ptr::operator = (const data_ptr& data) {
+		ptr = data.ptr;
+	}
+
+	template<>
+	void data_ptr::operator = (const std::string& data) {
+		ptr.reset(new DataValue(utf8_to_wide(data)));
+	}
+
+	template<>
+	void data_ptr::operator = (const std::wstring& data) {
+		ptr.reset(new DataValue(data));
+	}
+
+	template<>
+	void data_ptr::operator = (const data_map& data) {
+		ptr.reset(new DataMap(data));
+	}
+
+	void data_ptr::push_back(const data_ptr& data) {
+		if (!ptr) {
+			ptr.reset(new DataList(data_list()));
+		}
+		data_list& list = ptr->getlist();
+		list.push_back(data);
+	}
 
 	// base data
 	wstring Data::getvalue()
@@ -65,7 +112,7 @@ namespace cpptempl
 		size_t index = key.find(L".") ;
 		if (index == wstring::npos)
 		{
-			if (data.find(key) == data.end())
+			if (!data.has(key))
 			{
 				return make_data(L"{$" + key + L"}") ;
 			}
@@ -73,7 +120,7 @@ namespace cpptempl
 		}
 
 		wstring sub_key = key.substr(0, index) ;
-		if (data.find(sub_key) == data.end())
+		if (!data.has(sub_key))
 		{
 			return make_data(L"{$" + key + L"}") ;
 		}
@@ -346,6 +393,10 @@ namespace cpptempl
 		std::wostringstream stream ;
 		parse(stream, templ_text, data) ;
 		return stream.str() ;
+	}
+	std::string parse(std::string templ_text, data_map &data)
+	{
+		return wide_to_utf8(parse(utf8_to_wide(templ_text), data));
 	}
 	void parse(std::wostream &stream, wstring templ_text, data_map &data)
 	{

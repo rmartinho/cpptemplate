@@ -1,7 +1,11 @@
+#ifdef _MSC_VER
 #include "stdafx.h"
+#endif
 #include "cpptempl.h"
 
 #ifdef UNIT_TEST
+
+#define BOOST_TEST_MODULE cpptemplTests
 
 #include <boost/test/unit_test.hpp>
 
@@ -12,7 +16,21 @@ namespace std {
 
 	inline ostream& operator<<(ostream& out, const wchar_t* value)
 	{
+		#ifdef _MSC_VER
 		out << wstring(value) ;
+		#else
+		out << cpptempl::wide_to_utf8(value);
+		#endif
+		return out;
+	}
+
+	inline ostream& operator<<(ostream& out, const wstring& value)
+	{
+		#ifdef _MSC_VER
+		out << wstring(value) ;
+		#else
+		out << cpptempl::wide_to_utf8(value);
+		#endif
 		return out;
 	}
 }
@@ -30,7 +48,6 @@ BOOST_AUTO_TEST_SUITE( TestData )
 	{
 		data_map items ;
 		data_ptr data(new DataMap(items)) ;
-
 		BOOST_CHECK_THROW( data->getvalue(), TemplateException ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_DataMap_getlist_throws)

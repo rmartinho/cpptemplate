@@ -1,54 +1,21 @@
-#ifdef _MSC_VER
-#include "stdafx.h"
-#endif
+
 #include "cpptempl.h"
 
 #ifdef UNIT_TEST
 
-#define BOOST_TEST_MODULE cpptemplTests
-
 #include <boost/test/unit_test.hpp>
-#ifndef _MSC_VER
-#include <boost/locale.hpp>
+
+#ifndef BOOST_TEST_MODULE
+#define BOOST_TEST_MODULE cpptemplTests
 #endif
 
 #pragma warning( disable : 4996 ) // doesn't like wcstombs
 
-#ifndef _MSC_VER
-inline std::string WideToUTF8(const std::wstring& text) {
-    return boost::locale::conv::from_utf<>(text, "UTF-8");
-}
-#endif
-
-// Allow streaming of wstring to ostream
-namespace std {
-
-	inline ostream& operator<<(ostream& out, const wchar_t* value)
-	{
-		#ifdef _MSC_VER
-		out << wstring(value) ;
-		#else
-		out << cpptempl::wide_to_utf8(value);
-		#endif
-		return out;
-	}
-
-	inline ostream& operator<<(ostream& out, const wstring& value)
-	{
-		#ifdef _MSC_VER
-		out << wstring(value) ;
-		#else
-		out << cpptempl::wide_to_utf8(value);
-		#endif
-		return out;
-	}
-}
-
-#pragma warning( default : 4996 )
+#include "unit_testing.h"
 
 using namespace std ;
 
-BOOST_AUTO_TEST_SUITE( TestData )
+BOOST_AUTO_TEST_SUITE( TestCppData )
 
 	using namespace cpptempl ;
 	
@@ -119,7 +86,7 @@ BOOST_AUTO_TEST_SUITE( TestData )
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE( test_parse_val )
+BOOST_AUTO_TEST_SUITE( TestCppParseVal )
 
 	using namespace cpptempl ;
 	BOOST_AUTO_TEST_CASE(test_quoted)
@@ -223,7 +190,7 @@ BOOST_AUTO_TEST_SUITE( test_parse_val )
 	}
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( TestToken )
+BOOST_AUTO_TEST_SUITE( TestCppToken )
 
 	using namespace cpptempl ;
 
@@ -523,7 +490,7 @@ BOOST_AUTO_TEST_SUITE( TestToken )
 	}
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE( TestTokenize )
+BOOST_AUTO_TEST_SUITE( TestCppTokenize )
 
 	using namespace cpptempl ;
 
@@ -720,7 +687,7 @@ BOOST_AUTO_TEST_SUITE( test_parse_tree )
 	}
 BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_SUITE(test_parse)
+BOOST_AUTO_TEST_SUITE(TestCppParse)
 
 	using namespace cpptempl ;
 

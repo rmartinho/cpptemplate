@@ -47,7 +47,13 @@ Example:
 #include <vector>
 #include <map>							
 #include <boost/shared_ptr.hpp>
+#ifndef _MSC_VER
 #include <boost/locale.hpp>
+#else
+#include <boost/scoped_array.hpp>
+#include "windows.h"
+#include "winnls.h" // unicode-multibyte conversion
+#endif
 #include <boost/unordered_map.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -105,17 +111,36 @@ namespace cpptempl
 	template<> void data_ptr::operator = (const data_map& data);
 	template<typename T>
 	void data_ptr::operator = (const T& data) {
+#ifndef _MSC_VER
 		std::wstring data_str = boost::lexical_cast<std::wstring>(data);
+#else
+
+#endif
 		this->operator =(data_str);
 	}
 
 	// convenience functions for recoding utf8 string to wstring and back
 	inline std::wstring utf8_to_wide(const std::string& text) {
+#ifndef _MSC_VER
 		return boost::locale::conv::to_utf<wchar_t>(text, "UTF-8");
+#else
+		// Calculate the required length of the buffer
+		const size_t len_needed = ::MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (UINT)(text.length()) , NULL, 0 );
+		boost::scoped_array<wchar_t> buff(new wchar_t[len_needed+1]) ;
+		const size_t num_copied = ::MultiByteToWideChar(CP_UTF8, 0, text.c_str(), text.size(), buff.get(), len_needed+1) ;
+		return std::wstring(buff.get(), num_copied) ;
+#endif
 	}
 
 	inline std::string wide_to_utf8(const std::wstring& text) {
+#ifndef _MSC_VER
 		return boost::locale::conv::from_utf<>(text, "UTF-8");
+#else
+		const size_t len_needed = ::WideCharToMultiByte(CP_UTF8, 0, text.c_str(), (UINT)(text.length()) , NULL, 0, NULL, NULL) ;
+		boost::scoped_array<char> buff(new char[len_needed+1]) ;
+		const size_t num_copied = ::WideCharToMultiByte(CP_UTF8, 0, text.c_str(), (UINT)(text.length()) , buff.get(), len_needed+1, NULL, NULL) ;
+		return std::string(buff.get(), num_copied) ;
+#endif
 	}
 
 	// token classes

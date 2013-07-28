@@ -1,6 +1,7 @@
 #ifdef _MSC_VER
+#include "stdafx.h"
 #endif
-#endif
+
 #include "cpptempl.h"
 
 #include <sstream>

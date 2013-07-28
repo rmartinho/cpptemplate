@@ -28,7 +28,7 @@ namespace std {
 		#ifdef _MSC_VER
 		out << wstring(value) ;
 		#else
-		out << WideToUTF8(value);
+		out << cpptempl::wide_to_utf8(value);
 		#endif
 		return out;
 	}
@@ -38,7 +38,7 @@ namespace std {
 		#ifdef _MSC_VER
 		out << wstring(value) ;
 		#else
-		out << WideToUTF8(value);
+		out << cpptempl::wide_to_utf8(value);
 		#endif
 		return out;
 	}
@@ -57,7 +57,6 @@ BOOST_AUTO_TEST_SUITE( TestData )
 	{
 		data_map items ;
 		data_ptr data(new DataMap(items)) ;
-
 		BOOST_CHECK_THROW( data->getvalue(), TemplateException ) ;
 	}
 	BOOST_AUTO_TEST_CASE(test_DataMap_getlist_throws)

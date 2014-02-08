@@ -97,7 +97,7 @@ namespace cpptempl
 		}
 		template<typename T> void operator = (const T& data);
 		void push_back(const data_ptr& data);
-		~data_ptr() {}
+		virtual ~data_ptr() {}
 		Data* operator ->() {
 			return ptr.get();
 		}
